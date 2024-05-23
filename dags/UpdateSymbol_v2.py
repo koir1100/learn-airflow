@@ -72,11 +72,11 @@ def load(schema, table, records):
 
 with DAG(
     dag_id = 'UpdateSymbol_v2',
-    start_date = datetime(2023,5,30),
+    start_date = datetime(2024,4,19),
     catchup=False,
     tags=['API'],
     schedule = '0 10 * * *'
 ) as dag:
 
     results = get_historical_prices("AAPL")
-    load("keeyong", "stock_info_v2", results)
+    load("yonggu_choi_14", "stock_info_v2", results)

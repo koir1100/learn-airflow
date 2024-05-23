@@ -45,7 +45,7 @@ CREATE TABLE {schema}.{table} (
     close float,
     volume bigint
 );""")
-        # DELETE FROM을 먼저 수행 -> FULL REFRESH을 하는 형태
+        # 테이블 삭제 및 생성 먼저 수행 -> 레코드를 모두 삽입하는 FULL REFRESH 하는 형태
         for r in records:
             sql = f"INSERT INTO {schema}.{table} VALUES ('{r[0]}', {r[1]}, {r[2]}, {r[3]}, {r[4]}, {r[5]});"
             print(sql)
@@ -61,11 +61,11 @@ CREATE TABLE {schema}.{table} (
 
 with DAG(
     dag_id = 'UpdateSymbol',
-    start_date = datetime(2023,5,30),
+    start_date = datetime(2024,4,20),
     catchup=False,
     tags=['API'],
     schedule = '0 10 * * *'
 ) as dag:
 
     results = get_historical_prices("AAPL")
-    load("keeyong", "stock_info", results)
+    load("yonggu_choi_14", "stock_info", results)

@@ -32,8 +32,8 @@ def transform(text):
     lines = text.strip().split("\n")[1:] # 첫 번째 라인을 제외하고 처리
     records = []
     for l in lines:
-      (name, gender) = l.split(",") # l = "Keeyong,M" -> [ 'keeyong', 'M' ]
-      records.append([name, gender])
+        (name, gender) = l.split(",") # l = "Keeyong,M" -> [ 'keeyong', 'M' ]
+        records.append([name, gender])
     logging.info("Transform ended")
     return records
 
@@ -42,9 +42,9 @@ def load(records):
     logging.info("load started")
     """
     records = [
-      [ "Keeyong", "M" ],
-      [ "Claire", "F" ],
-      ...
+        [ "Keeyong", "M" ],
+        [ "Claire", "F" ],
+        ...
     ]
     """
     schema = "keeyong"
@@ -82,7 +82,7 @@ def etl(**context):
 
 dag = DAG(
     dag_id = 'name_gender_v2',
-    start_date = datetime(2023,4,6), # 날짜가 미래인 경우 실행이 안됨
+    start_date = datetime(2024,4,6), # 날짜가 미래인 경우 실행이 안됨
     schedule = '0 2 * * *',  # 적당히 조절
     catchup = False,
     max_active_runs = 1,	

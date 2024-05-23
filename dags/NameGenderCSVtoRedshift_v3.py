@@ -35,8 +35,8 @@ def transform(**context):
     lines = text.strip().split("\n")[1:] # 첫 번째 라인을 제외하고 처리
     records = []
     for l in lines:
-      (name, gender) = l.split(",") # l = "Keeyong,M" -> [ 'keeyong', 'M' ]
-      records.append([name, gender])
+        (name, gender) = l.split(",") # l = "Keeyong,M" -> [ 'keeyong', 'M' ]
+        records.append([name, gender])
     logging.info("Transform ended")
     return records
 
@@ -49,22 +49,22 @@ def load(**context):
     lines = context["task_instance"].xcom_pull(key="return_value", task_ids="transform")
     """
     records = [
-      [ "Keeyong", "M" ],
-      [ "Claire", "F" ],
-      ...
+        [ "Keeyong", "M" ],
+        [ "Claire", "F" ],
+        ...
     ]
     """
     # BEGIN과 END를 사용해서 SQL 결과를 트랜잭션으로 만들어주는 것이 좋음
     cur = get_Redshift_connection()
     try:
         cur.execute("BEGIN;")
-        cur.execute(f"DELETE FROM {schema}.name_gender;") 
+        cur.execute(f"DELETE FROM {schema}.{table};") 
         # DELETE FROM을 먼저 수행 -> FULL REFRESH을 하는 형태
-        for r in records:
+        for r in lines:
             name = r[0]
             gender = r[1]
             print(name, "-", gender)
-            sql = f"INSERT INTO {schema}.name_gender VALUES ('{name}', '{gender}')"
+            sql = f"INSERT INTO {schema}.{table} VALUES ('{name}', '{gender}')"
             cur.execute(sql)
         cur.execute("COMMIT;")   # cur.execute("END;") 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -105,7 +105,7 @@ load = PythonOperator(
     task_id = 'load',
     python_callable = load,
     params = {
-        'schema': 'keeyong',
+        'schema': 'yonggu_choi_14',
         'table': 'name_gender'
     },
     dag = dag)
