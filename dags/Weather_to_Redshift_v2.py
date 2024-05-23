@@ -21,7 +21,7 @@ def get_Redshift_connection():
 def etl(schema, table, lat, lon, api_key):
 
     # https://openweathermap.org/api/one-call-api
-    url = f"https://api.openweathermap.org/data/2.5/onecall?lat={lat}&lon={lon}&appid={api_key}&units=metric&exclude=current,minutely,hourly,alerts"
+    url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={api_key}&units=metric&exclude=current,minutely,hourly,alerts"
     response = requests.get(url)
     data = json.loads(response.text)
 
@@ -85,7 +85,7 @@ def etl(schema, table, lat, lon, api_key):
 
 with DAG(
     dag_id = 'Weather_to_Redshift_v2',
-    start_date = datetime(2022,8,24), # 날짜가 미래인 경우 실행이 안됨
+    start_date = datetime(2024,5,20), # 날짜가 미래인 경우 실행이 안됨
     schedule = '0 4 * * *',  # 적당히 조절
     max_active_runs = 1,
     catchup = False,
@@ -95,4 +95,4 @@ with DAG(
     }
 ) as dag:
 
-    etl("keeyong", "weather_forecast_v2", 37.5665, 126.9780, Variable.get("open_weather_api_key"))
+    etl("yonggu_choi_14", "weather_forecast_v2", 37.475153248725896, 126.90319972591155, Variable.get("open_weather_api_key"))
