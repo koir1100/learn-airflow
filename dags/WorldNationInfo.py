@@ -1,13 +1,15 @@
 from airflow import DAG
 from airflow.decorators import task
+from airflow.providers.amazon.aws.hooks.s3 import S3Hook
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
-from datetime import date, datetime
+from datetime import datetime
 from datetime import timedelta
 
 import json
 import requests
 import logging
+import psycopg2
 
 def get_Redshift_connection(autocommit=True):
     hook = PostgresHook(postgres_conn_id='redshift_dev_db')
@@ -15,9 +17,31 @@ def get_Redshift_connection(autocommit=True):
     conn.autocommit = autocommit
     return conn.cursor()
 
+def get_S3_session():
+    hook = S3Hook(aws_conn_id='aws_conn_id_choi')
+    session = hook.get_session(region_name="ap-northeast-2")
+    return session
+
+def get_generated_presigned_url(session):
+    key_name = "nation-info/nation_list.json"
+    s3_client = session.client('s3')
+    url = s3_client.generate_presigned_url(
+        ClientMethod='get_object',
+        Params = {
+            'Bucket': "yonggu-practice-bucket",
+            'Key': key_name,
+        },
+        # url 유효기간 (단위:second)
+        ExpiresIn = 10
+    )
+
+    return url
+
 @task
-def extract(url):
-    logging.info(datetime.now(datetime.UTC))
+def extract():
+    logging.info(datetime.now())
+
+    url = get_generated_presigned_url(get_S3_session())
     full_info = requests.get(url)
     return full_info.text
 
@@ -41,14 +65,14 @@ def load(schema, table_info, records):
     try:
         cur.execute("BEGIN;")
         cur.execute(f"""
-CREATE TABLE IF NOT EXIST {schema}.{table_info[0]} (
+CREATE TABLE IF NOT EXISTS {schema}.{table_info[0]} (
     {table_info[1]}
 );""")
         cur.execute(f"DELETE FROM {schema}.{table_info[0]};")
         for record in records:
-            sql = f"INSERT INTO {schema}.{table_info[0]} VALUES ('{record[0]}', '{record[table_info[2]]}');"
-            print(sql)
-            cur.execute(sql)
+            sql = f"INSERT INTO {schema}.{table_info[0]} VALUES (%s::int, %s);"
+            print(sql, (record[0], record[table_info[2]]))
+            cur.execute(sql, (record[0], record[table_info[2]]))
         cur.execute("COMMIT;")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
@@ -56,26 +80,27 @@ CREATE TABLE IF NOT EXIST {schema}.{table_info[0]} (
         raise
     logging.info("load done")
 
-    with DAG(
-        dag_id='WorldNationInfo',
-        start_date=date(date.today - timedelta(days=1)),
-        schedule='30 6 * * 6',
-        max_active_runs=1,
-        catchup=False,
-        default_args={
-            'retries': 1,
-            'retry_delay': timedelta(minutes=3),
-        }
-    ) as dag:
-        
-        url = "https://restcountries.com/v3.1/all?fields=name,population,area"
-        schema = 'yonggu_choi_14'
-        table_info = [
-            ["country", "id int, country_name text", 1], 
-            ["population", "id int, population int", 2], 
-            ["area", "id int, area float", 3],
-        ]
 
-        lines = transform(extract(url))
-        for info in table_info:
-            load(schema, info, lines)
+with DAG(
+    dag_id='WorldNationInfo',
+    start_date=datetime(2024,5,25),
+    schedule='30 6 * * 6',
+    max_active_runs=1,
+    catchup=False,
+    default_args={
+        'retries': 1,
+        'retry_delay': timedelta(minutes=3),
+    }
+) as dag:
+
+    #url = "https://restcountries.com/v3.1/all?fields=name,population,area"
+    schema = 'yonggu_choi_14'
+    table_info = [
+        ["country", "id int, country_name text", 1], 
+        ["population", "id int, population int", 2], 
+        ["area", "id int, area float", 3],
+    ]
+
+    lines = transform(extract())
+    for info in table_info:
+        load(schema, info, lines)
