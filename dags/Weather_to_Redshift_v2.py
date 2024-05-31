@@ -85,7 +85,7 @@ def etl(schema, table, lat, lon, api_key):
 
 with DAG(
     dag_id = 'Weather_to_Redshift_v2',
-    start_date = datetime(2024,5,20), # 날짜가 미래인 경우 실행이 안됨
+    start_date = datetime(2024,5,26), # 날짜가 미래인 경우 실행이 안됨
     schedule = '0 4 * * *',  # 적당히 조절
     max_active_runs = 1,
     catchup = False,
