@@ -53,8 +53,8 @@ def build_summary_table(dag_root_path, dag, tables_load, redshift_conn_id, start
     else:
         prev_task = None
 
+    # tables_load -> dict type
     for table_name in tables_load:
-
         table = find(table_name, table_confs)
         summarizer = RedshiftSummaryOperator(
             table=table["table"],
@@ -94,33 +94,33 @@ class RedshiftSummaryOperator(PythonOperator):
                         of sql (select) and minimum count
     :type input_check: a list of sql and count
     :param main_sql: a main sql to create a summary table. this should
-                     use a temp table. this sql can have more than one 
-                     statement
+                    use a temp table. this sql can have more than one 
+                    statement
     :type main_sql: string
     :input output_check: output validation. It is a list of sql (select)
-                         and minimum count
+                        and minimum count
     :type output_check: a list of sql and count
     :input overwrite: Currently this only supports overwritting (True)
-                      Once False is supported, it will append to the table
+                    Once False is supported, it will append to the table
     :type overwrite: boolean
     """
 
     @apply_defaults
     def __init__(self,
-                 schema,
-                 table,
-                 redshift_conn_id,
-                 input_check,
-                 main_sql,
-                 output_check,
-                 overwrite,
-                 params={},
-                 pre_sql="",
-                 after_sql="",
-                 attributes="",
-                 *args,
-                 **kwargs
-                 ):
+                schema,
+                table,
+                redshift_conn_id,
+                input_check,
+                main_sql,
+                output_check,
+                overwrite,
+                params={},
+                pre_sql="",
+                after_sql="",
+                attributes="",
+                *args,
+                **kwargs
+                ):
         self.schema = schema
         self.table = table
         self.redshift_conn_id = redshift_conn_id
@@ -173,7 +173,7 @@ class RedshiftSummaryOperator(PythonOperator):
         DROP TABLE IF EXISTS {schema}.{table} CASCADE;
         ALTER TABLE {schema}.temp_{table} RENAME TO {table};   
         GRANT SELECT ON TABLE {schema}.{table} TO GROUP analytics_users;
-        END
+        END;
         """.format(schema=self.schema,table=self.table)
         self.hook.run(sql, True)
 
@@ -183,6 +183,8 @@ class RedshiftSummaryOperator(PythonOperator):
         - each item in the dictionary contains "sql" and "count"
         """
         self.hook = PostgresHook(postgres_conn_id=self.redshift_conn_id)
+
+        # input_check is list -> each element allocates in item
         for item in self.input_check:
             (cnt,) = self.hook.get_first(item["sql"])
             if cnt < item["count"]:
@@ -191,7 +193,7 @@ class RedshiftSummaryOperator(PythonOperator):
 
         """
         - create a temp table using create table like
-        - run insert into the temp table
+        - run insert into the temp table (call __init__ function)
         """
         return_value = super(RedshiftSummaryOperator, self).execute(context)
 

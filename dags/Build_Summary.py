@@ -5,12 +5,11 @@ from airflow.hooks.postgres_hook import PostgresHook
 from datetime import datetime
 from datetime import timedelta
 
-from airflow import AirflowException
-
 import requests
 import logging
 import psycopg2
 
+# from airflow import AirflowException
 from airflow.exceptions import AirflowException
 
 def get_Redshift_connection():
@@ -19,7 +18,6 @@ def get_Redshift_connection():
 
 
 def execSQL(**context):
-
     schema = context['params']['schema'] 
     table = context['params']['table']
     select_sql = context['params']['sql']
@@ -45,31 +43,76 @@ def execSQL(**context):
         logging.info(sql)
         cur.execute(sql)
     except Exception as e:
-        cur.execute("ROLLBACK")
+        cur.execute("ROLLBACK;")
         logging.error('Failed to sql. Completed ROLLBACK!')
-        raise AirflowException("")
+        raise
+        # raise AirflowException("")
 
 
 dag = DAG(
     dag_id = "Build_Summary",
-    start_date = datetime(2021,12,10),
+    start_date = datetime(2024,1,1),
     schedule = '@once',
     catchup = False
 )
 
-execsql = PythonOperator(
+execsql1 = PythonOperator(
     task_id = 'mau_summary',
     python_callable = execSQL,
     params = {
-        'schema' : 'keeyong',
+        'schema' : 'yonggu_choi_14',
         'table': 'mau_summary',
         'sql' : """SELECT 
-  TO_CHAR(A.ts, 'YYYY-MM') AS month,
-  COUNT(DISTINCT B.userid) AS mau
-FROM raw_data.session_timestamp A
-JOIN raw_data.user_session_channel B ON A.sessionid = B.sessionid
-GROUP BY 1 
+    TO_CHAR(A.ts, 'YYYY-MM') AS month,
+    COUNT(DISTINCT B.userid) AS mau
+        FROM raw_data.session_timestamp A
+            INNER JOIN raw_data.user_session_channel B
+            ON A.sessionid = B.sessionid
+        GROUP BY 1
 ;"""
     },
     dag = dag
 )
+
+execsql2 = PythonOperator(
+    task_id = 'channel_summary',
+    python_callable = execSQL,
+    params = {
+        'schema' : 'yonggu_choi_14',
+        'table': 'channel_summary',
+        'sql' : """SELECT 
+    DISTINCT A.userid,
+    FIRST_VALUE(A.channel) over (partition by A.userid order by B.ts rows between unbounded preceding and unbounded following) AS First_Channel,
+    LAST_VALUE(A.channel) over (partition by A.userid order by B.ts rows between unbounded preceding and unbounded following) AS Second_Channel
+        FROM raw_data.user_session_channel AS A
+            LEFT JOIN raw_data.session_timestamp AS B
+            ON A.sessionid = B.sessionid
+;"""
+    },
+    dag = dag
+)
+
+execsql3 = PythonOperator(
+    task_id = 'nps_summary',
+    python_callable = execSQL,
+    params = {
+        'schema' : 'yonggu_choi_14',
+        'table': 'nps_summary',
+        'sql' : """SELECT LEFT(created_at, 10) AS date,
+    ROUND(
+        SUM(
+            CASE
+                WHEN score >= 9 THEN 1
+                WHEN score <= 6 THEN -1
+            END
+        )::float*100/COUNT(date), 2
+    ) AS nps
+        FROM yonggu_choi_14.nps
+            GROUP BY date
+            ORDER BY date
+;"""
+    },
+    dag = dag
+)
+
+execsql1 >> execsql2 >> execsql3
