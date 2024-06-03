@@ -7,9 +7,13 @@ from datetime import datetime
 from datetime import timedelta
 
 import json
-import requests
 import logging
 import psycopg2
+import requests
+from requests.exceptions import HTTPError
+from http import HTTPStatus
+
+from botocore.exceptions import ClientError, ValidationError
 
 def get_Redshift_connection(autocommit=True):
     hook = PostgresHook(postgres_conn_id='redshift_dev_db')
@@ -25,24 +29,38 @@ def get_S3_session():
 def get_generated_presigned_url(session):
     key_name = "nation-info/nation_list.json"
     s3_client = session.client('s3')
-    url = s3_client.generate_presigned_url(
-        ClientMethod='get_object',
-        Params = {
-            'Bucket': "yonggu-practice-bucket",
-            'Key': key_name,
-        },
-        # url 유효기간 (단위:second)
-        ExpiresIn = 10
-    )
+    url = ""
+
+    try:
+        url = s3_client.generate_presigned_url(
+            ClientMethod='get_object',
+            Params = {
+                'Bucket': "yonggu-practice-bucket",
+                'Key': key_name,
+            },
+            # url 유효기간 (단위:second)
+            ExpiresIn = 10
+        )
+        logging.info(f"generated url: {url}")
+    except ClientError as e:
+        logging.error(e)
+        raise ValidationError({"s3": ["S3 Client Error"]})
 
     return url
 
 @task
 def extract():
     logging.info(datetime.now())
-
     url = get_generated_presigned_url(get_S3_session())
-    full_info = requests.get(url)
+
+    try:
+        full_info = requests.get(url)
+        if full_info.status_code != HTTPStatus.OK:
+            raise full_info.raise_for_status()
+    except HTTPError as e:
+        logging.error(e)
+        raise
+
     return full_info.text
 
 @task
@@ -76,7 +94,7 @@ CREATE TABLE IF NOT EXISTS {schema}.{table_info[0]} (
         cur.execute("COMMIT;")
     except (Exception, psycopg2.DatabaseError) as error:
         print(error)
-        cur.execute("ROLLBACK")
+        cur.execute("ROLLBACK;")
         raise
     logging.info("load done")
 
@@ -104,3 +122,4 @@ with DAG(
     lines = transform(extract())
     for info in table_info:
         load(schema, info, lines)
+
