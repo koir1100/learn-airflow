@@ -17,17 +17,19 @@ dag = DAG(
     max_active_runs=1,
     concurrency=1,
     catchup=False,
-    start_date=datetime(2021, 9, 17),
+    start_date=datetime(2024, 1, 2),
     default_args= {
         'on_failure_callback': slack.on_failure_callback,
         'retries': 1,
-        'retry_delay': timedelta(minutes=1),
+        'retry_delay': timedelta(minutes=3),
     }
 )
 
 # this should be listed in dependency order (all in analytics)
 tables_load = [
-    'nps_summary'
+    'nps_summary',
+    'mau_summary',
+    'channel_summary'
 ]
 
 dag_root_path = os.path.dirname(os.path.abspath(__file__))

@@ -16,9 +16,8 @@ Build a summary table under analytics schema in Redshift
 - Finally swap
 """
 def load_all_jsons_into_list(path_to_json):
-
     configs = []
-    for f_name in glob(path_to_json+ '/*.py'):
+    for f_name in glob(path_to_json + '/*.py'):
         # logging.info(f_name)
         with open(f_name) as f:
             dict_text = f.read()
