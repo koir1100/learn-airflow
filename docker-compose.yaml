@@ -58,8 +58,10 @@ x-airflow-common:
     AIRFLOW__CELERY__BROKER_URL: redis://:@redis:6379/0
     AIRFLOW__CORE__FERNET_KEY: ''
     AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: 'true'
-    AIRFLOW__CORE__LOAD_EXAMPLES: 'true'
+    AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
     AIRFLOW__API__AUTH_BACKENDS: 'airflow.api.auth.backend.basic_auth,airflow.api.auth.backend.session'
+    # default: 'False' / allow-value: 'non-sensitive-only', 'True', 'False'
+    AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'True'
     AIRFLOW_VAR_DATA_DIR: /opt/airflow/data
     _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- pymysql yfinance pandas numpy oauth2client gspread}
   volumes:

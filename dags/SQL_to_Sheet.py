@@ -14,7 +14,7 @@ def update_gsheet(**context):
 
 with DAG(
     dag_id = 'SQL_to_Sheet',
-    start_date = datetime(2022,6,18),
+    start_date = datetime(2024,5,18),
     catchup=False,
     tags=['example'],
     schedule = '@once'
@@ -25,7 +25,7 @@ with DAG(
         task_id='update_sql_to_sheet1',
         python_callable=update_gsheet,
         params = {
-            "sql": "SELECT * FROM analytics.nps_summary",
+            "sql": "SELECT date, nps FROM analytics.nps_summary order by date",
             "sheetfilename": "spreadsheet-copy-testing",
             "sheetgid": "RedshiftToSheet"
         }

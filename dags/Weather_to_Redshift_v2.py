@@ -68,12 +68,12 @@ def etl(schema, table, lat, lon, api_key):
 
     # 기존 테이블 대체
     alter_sql = f"""DELETE FROM {schema}.{table};
-      INSERT INTO {schema}.{table}
-      SELECT date, temp, min_temp, max_temp FROM (
-        SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) seq
-        FROM t
-      )
-      WHERE seq = 1;"""
+    INSERT INTO {schema}.{table}
+        SELECT date, temp, min_temp, max_temp FROM (
+            SELECT *, ROW_NUMBER() OVER (PARTITION BY date ORDER BY created_date DESC) seq
+            FROM t
+        )
+    WHERE seq = 1;"""
     logging.info(alter_sql)
     try:
         cur.execute(alter_sql)
@@ -95,4 +95,4 @@ with DAG(
     }
 ) as dag:
 
-    etl("yonggu_choi_14", "weather_forecast_v2", 37.475153248725896, 126.90319972591155, Variable.get("open_weather_api_key"))
+    etl("yonggu_choi_14", "weather_forecast_v2", 37.475, 126.903, Variable.get("open_weather_api_key"))

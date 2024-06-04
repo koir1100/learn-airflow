@@ -47,7 +47,7 @@ def get_google_sheet_to_csv(
     - if tab is None, then the records in the first tab of the sheet will be downloaded
     - if tab has only one row in the header, then just use the default value which is 1
     - setting remove_dollar_comma to 1 will remove any dollar signs or commas from the values in the CSV file
-      - dollar sign might need to be won sign instead here
+        - dollar sign might need to be won sign instead here
     - setting rate_to_float to 1 will convert any percentage numeric values to fractional values (50% -> 0.5)
     """
 
