@@ -5,7 +5,7 @@ from airflow.providers.postgres.hooks.postgres import PostgresHook
 
 from datetime import datetime
 from datetime import timedelta
-# from plugins import slack
+from plugins import slack
 
 import requests
 import logging
@@ -65,7 +65,7 @@ def load(**context):
             name = r[0]
             gender = r[1]
             print(name, "-", gender)
-            sql = f"INSERT INTO {schema}.{table} VALUES ('{name}', '{gender}')"
+            sql = f"IINSERT INTO {schema}.{table} VALUES ('{name}', '{gender}')"
             cur.execute(sql)
         cur.execute("COMMIT;")   # cur.execute("END;") 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -82,9 +82,9 @@ dag = DAG(
     max_active_runs = 1,
     catchup = False,
     default_args = {
-        'retries': 1,
-        'retry_delay': timedelta(minutes=3),
-        # 'on_failure_callback': slack.on_failure_callback,
+        'retries': 0,
+        'retry_delay': timedelta(minutes=0),
+        'on_failure_callback': slack.on_failure_callback,
     }
 )
 
