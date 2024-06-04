@@ -63,7 +63,8 @@ x-airflow-common:
     # default: 'False' / allow-value: 'non-sensitive-only', 'True', 'False'
     AIRFLOW__WEBSERVER__EXPOSE_CONFIG: 'True'
     AIRFLOW_VAR_DATA_DIR: /opt/airflow/data
-    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:- pymysql yfinance pandas numpy oauth2client gspread}
+    AIRFLOW_CONN_SNOWFLAKE_CONN_ID: 'snowflake://yonggu:{password}@/raw_data?account={account}&database=dev&region=ap-northeast-2.aws&warehouse=COMPUTE_WH&role=ACCOUNTADMIN'
+    _PIP_ADDITIONAL_REQUIREMENTS: ${_PIP_ADDITIONAL_REQUIREMENTS:-pymysql yfinance pandas numpy oauth2client gspread snowflake-connector-python==2.9.0 snowflake-sqlalchemy==1.4.4 apache-airflow-providers-snowflake==4.0.2}
   volumes:
     - ${AIRFLOW_PROJ_DIR:-.}/dags:/opt/airflow/dags
     - ${AIRFLOW_PROJ_DIR:-.}/logs:/opt/airflow/logs
