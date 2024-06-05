@@ -4,7 +4,7 @@ from datetime import datetime
 
 dag = DAG(
     dag_id='SourceDag',
-    start_date=datetime(2023, 6, 19),
+    start_date=datetime(2024, 6, 5),
     schedule='@daily'
 )
 

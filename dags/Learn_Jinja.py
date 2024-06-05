@@ -4,9 +4,9 @@ from datetime import datetime
 
 # DAG 정의
 dag = DAG(
-    'Learn_Jinja',
+    dag_id='Learn_Jinja',
     schedule='0 0 * * *',  # 매일 실행
-    start_date=datetime(2023, 6, 1),
+    start_date=datetime(2024, 6, 1),
     catchup=False
 )
 

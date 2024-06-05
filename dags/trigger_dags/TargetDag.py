@@ -3,9 +3,9 @@ from airflow.operators.bash import BashOperator
 from datetime import datetime
 
 dag = DAG(
-    'TargetDag',
-    schedule='@once',  # 매일 실행
-    start_date=datetime(2023, 6, 1),
+    dag_id='TargetDag',
+    schedule='@once',
+    start_date=datetime(2024, 6, 1),
 )
 
 task1 = BashOperator(

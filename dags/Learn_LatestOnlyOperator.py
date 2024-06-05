@@ -8,7 +8,7 @@ from datetime import timedelta
 with DAG(
    dag_id='Learn_LatestOnlyOperator',
    schedule=timedelta(hours=48),    # 매 48시간마다 실행되는 DAG로 설정
-   start_date=datetime(2023, 6, 14),
+   start_date=datetime(2024, 6, 2),
    catchup=True) as dag:
 
    t1 = EmptyOperator(task_id='task1')
