@@ -3,9 +3,9 @@ from airflow.decorators import task
 from datetime import datetime
 
 with DAG(dag_id="get_price_APPL",
-    start_date=datetime(2023, 6, 15),
+    start_date=datetime(2024, 5, 27),
     schedule='@daily',
-    catchup=True) as dag:
+    catchup=False) as dag:
 
     @task
     def extract(symbol):
