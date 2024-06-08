@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Airflow &#xace0;&#xae09; &#xae30;&#xb2a5;</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h2 id="airflow-고급-기능">Airflow 고급 기능</h2>
+<h3 id="개념-요약">개념 요약</h3>
+<ol>
+<li>Dag 란?</li>
+</ol>
+<ul>
+<li>Directed Acyclic Graph의 줄임말로, Airflow에서 데이터 파이프라인 구축을 통칭하는 ETL을 의미</li>
+<li>하나의 Dag는 한 개 이상의 Task로 구성되며, 세 개의 태스크로 구성할 때, Extract, Transform, Load로 구성 가능
+<ul>
+<li>Task는 오퍼레이터로 만들어지며, 기 구현된 오퍼레이터 사용 또는 직접 구현 가능</li>
+</ul>
+</li>
+</ul>
+<ol start="2">
+<li>Dag 실행 방법</li>
+</ol>
+<ul>
+<li>주기적으로 실행하는 방법으로 schedule을 지정하는 방식</li>
+<li>다른 Dag에 의해 Trigger되어 실행되는 방식
+<ul>
+<li>명시적 트리거: 어떤 Dag가 분명하게 다른 Dag를 트리거 (TriggerDagRunOperator - 맥스 님 PICK!)</li>
+<li>Reactive 트리거: 다른 Dag의 특정 작업이 완료될 때까지 대기하고, 완료됨을 확인한 경우 실행 (ExternalTaskSensor - 비추천)
+<ul>
+<li>이는 어떤 Dag가 다른 Dag의 특정 작업의 완료를 확인하는 것을 정작 다른 Dag 본인은 모름</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>상황에 따른 태스크 실행 방식
+<ul>
+<li>BranchPythonOperator: 조건에 따라 다른 태스크로 분기</li>
+<li>LatestOnlyOperator: 과거 데이터에 대한 Backfill 수행 시 되풀이하면 안 되는 (불필요한) 태스크 처리</li>
+<li>Trigger Rule 기반 실행: 앞단 Task가 실패하더라도 뒷단 Task의 실행이 필요한 경우 trigger_rule 파라미터 기반 결정 가능</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>Sensor</li>
+</ol>
+<ul>
+<li>Reactive한 트리거로, 특정 조건을 만족할 때까지 대기하는 Operator임</li>
+<li>FileSensor, TimeSensor, ExternalTaskSensor
+<ul>
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.5.1/_api/airflow/sensors/filesystem/index.html#airflow.sensors.filesystem.FileSensor">airflow.sensors.filesystem</a>, <a href="https://airflow.apache.org/docs/apache-airflow/2.5.1/_api/airflow/sensors/time_sensor/index.html#airflow.sensors.time_sensor.TimeSensor">airflow.sensors.time_sensor</a>, <a href="https://airflow.apache.org/docs/apache-airflow/2.5.1/_api/airflow/sensors/external_task/index.html#airflow.sensors.external_task.ExternalTaskSensor">airflow.sensors.external_task</a> 모듈에 정의</li>
+</ul>
+</li>
+<li>HttpSensor: <a href="https://airflow.apache.org/docs/apache-airflow-providers-http/4.1.1/_api/airflow/providers/http/sensors/http/index.html#airflow.providers.http.sensors.http.HttpSensor">airflow.providers.http.sensors.http</a> 모듈에 정의</li>
+<li>SqlSensor: <a href="https://airflow.apache.org/docs/apache-airflow-providers-common-sql/1.3.3/_api/airflow/providers/common/sql/sensors/sql/index.html#airflow.providers.common.sql.sensors.sql.SqlSensor">airflow.providers.common.sql.sensors.sql</a> 모듈에 정의</li>
+<li>두 가지 방식으로 대기하는데, 기본으로는 poke mode이며, reschedule mode도 있음.
+<ul>
+<li>poke는 주기적으로 만족 여부를 확인하고자 worker 자원을 계속 가지며, worker의 자원 낭비 가능성이 있음</li>
+<li>reschedule은 만족하지 않는 경우 확인 주기가 올 때까지 worker를 놓아주고, 주기가 왔을 때 worker 자원을 다시 잡아서 만족 여부를 확인하는 방법임.<br>
+다만, 주기가 오더라도 확인을 위한 worker 자원이 부족한 경우 잡지 못하는 현상이 발생할 수 있음(utilization하나, 보장하지 못할 경우도 있을 수 있음)</li>
+</ul>
+</li>
+</ul>
+<ol start="4">
+<li><a href="https://airflow.apache.org/docs/apache-airflow/2.5.1/core-concepts/dags.html#trigger-rules">Trigger Rules</a></li>
+</ol>
+<ul>
+<li>Dag의 이전 Task에 따라 다음 Task 실행을 결정하기 위한 조건
+<ul>
+<li>크게 all_success(기본값), all_failed, all_done, one_failed, one_success, none_failed, none_skipped, none_failed_min_one_success, always(dummy) 등이 있음.</li>
+</ul>
+</li>
+<li>참고로, Task의 수행 결과는 success, failed, skipped 로 구분됨.</li>
+</ul>
+<ol start="5">
+<li>Task Grouping</li>
+</ol>
+<ul>
+<li>Task 수가 많은 Dag라면 여러 Task를 성격에 따라 묶어서 관리하고자 하는 욕구가 생기게 되는데, 이를 위해 Task Grouping이 등장하였음</li>
+<li>또한, Task Group에 대한 중첩 및 실행 순서 정의 가능 → 이를 통한 시각적으로 복잡한 Task 구조 간소화</li>
+</ul>
+<ol start="6">
+<li>Dynamic Dag</li>
+</ol>
+<ul>
+<li>Jinja 기반 Template 파일과 Template 파일에 전달할 매개변수를 yaml 파일에 정의 → Dag 파일을 동적으로 생성
+<ul>
+<li>다만, 동적으로 여러 Dag를 생성하는 것과 하나의 Dag 내 Task를 늘리는 것에 대한 고려 필요</li>
+<li>이는, (Dag의) 오너가 다르거나 Task 수가 너무 커지는 경우라면 Dag 복제가 바람직함</li>
+</ul>
+</li>
+</ul>
+
+            
+            
+        </body>
+        </html>
